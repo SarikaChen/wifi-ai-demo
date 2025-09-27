@@ -1,143 +1,167 @@
-# AI for Wi-Fi Applications Demo 🚀
+# AI for Wi-Fi Applications Demo
 
 這個專案展示了 **AI SDK 部署** 與 **Wi-Fi sensing 應用** 的實作範例，呼應無線產品中 AI 的可能應用場景。  
 包含兩個部分：  
-1. **AI SDK 部署 Demo** (影像分類 – TensorFlow Lite)  
-2. **Wi-Fi Sensing Demo** (WiAR Dataset – 活動辨識)
+1. **Wi-Fi Sensing Demo (UCI HAR dataset)**：展示資料前處理、模型訓練、匯出 TFLite
+2. **AI SDK 部署 Demo (Image Classification)**：展示如何使用 AI SDK 在 Edge 裝置上進行 TFLite 推論
+
+> 關聯性說明：Wi-Fi Sensing 部分展示**時序感測資料的模型訓練與匯出**；AI SDK Demo 展示**在 Edge 裝置上以 TFLite 執行推論**。兩者合起來，對應無線產品 AI 化的實作流程：模型開發 → 輕量化 → 部署與推論。
+
 
 ---
 
-## 📂 專案結構
-
+## 專案結構
 ```
 wifi-ai-demo/
-├─ ai_sdk_demo/                # AI SDK 部署 Demo (影像分類)
-│  ├─ images/                  # 測試圖片 (test.jpg, dog.jpg ...)
-│  ├─ model/                   # 模型與標籤檔 (model.tflite, labels.txt)
-│  └─ run_inference.py         # 推論程式碼
+├─ ai_sdk_demo/                        # AI SDK 部署 Demo（影像分類，TFLite）
+│  ├─ images/                          # 測試圖片（例：test.jpg）
+│  ├─ model/                           # *.tflite / labels.txt
+│  └─ run_inference.py                 # 載入 `.tflite` + `labels.txt` 做影像推論
 │
-├─ wifi_sensing_demo/          # Wi-Fi Sensing Demo (CSI 活動辨識)
-│  ├─ data/                    # WiAR dataset 或 processed.npz
-│  ├─ model/                   # 訓練好的模型 & 輸出檔 (h5, tflite, png)
-│  └─ train_eval.py            # 訓練 & 測試程式碼
+├─ wifi_sensing_demo/                  # Wi-Fi Sensing / HAR 訓練與部署
+│  ├─ data/                            # processed.npz 存放處
+│  ├─ model/                           # 訓練輸出（h5 / tflite / 圖）
+│  └─ train_eval.py                    # 訓練/早停/匯出/畫圖/評估
 │
-├─ tools/                      # 工具腳本 (匯出模型、下載 labels)
-│  ├─ export_mobilenet.py
-│  └─ get_imagenet_labels.py
+├─ tools/                              # 工具腳本
+│  ├─ export_mobilenet.py              # 匯出模型
+│  ├─ get_imagenet_labels.py           # 下載 labels
+│  └─ uci_har_to_processed.py          # UCI HAR → processed.npz 轉檔
 │
-├─ demo_output/                # Demo 截圖 (ai-sdk-resultpng ...)
+├─ demo_output/                        # Demo 截圖 (ai-sdk-result.png ...)
 │
-├─ requirements.txt            # 相依套件
-└─ README.md                   # 專案說明文件
-```
+├─ requirements.txt                    # 相依套件
+└─ README.md                           # 專案說明文件
 
-```yaml
-+---------------------------------------------------------+
-|                    wifi-ai-demo 專案                    |
-+-------------------------+-------------------------------+
-|  AI SDK 部署 Demo       |  Wi-Fi Sensing Demo           |
-|  (Image Classification) |  (CSI 活動辨識)                |
-+-------------------------+-------------------------------+
-|                         |                               |
-|  Input: test.jpg        |  Input: WiAR CSI Data /       |
-|  Model: model.tflite    |         Synthetic Data        |
-|  Labels: labels.txt     |                               |
-|                         |                               |
-|  Run: run_inference.py  |  Run: train_eval.py           |
-|                         |                               |
-|  Output:                |  Output:                      |
-|   - Top-5 predictions   |   - Trained model (.h5)       |
-|   - Inference time      |   - TFLite model (.tflite)    |
-|                         |   - Accuracy / Confusion      |
-|                         |   - training_curve.png        |
-|                         |   - training_curve_loss.png   |
-+-------------------------+-------------------------------+
 ```
 
 ---
 
-## 1️⃣ AI SDK 部署 Demo
-### ✨ 功能
-- 使用 **TensorFlow Lite** 部署 **MobileNetV2** 模型  
-- 可在 PC / Raspberry Pi / Android 裝置上推論  
-- Demo：輸入圖片 → 輸出分類結果  
+## 環境安裝
+建議 Python **3.11**。
 
-### 🔧 環境安裝
 ```bash
-pip install -r requirements.txt
-```
+python -m venv .venv
+# Windows
+.\.venv\Scripts\activate
 
-### ▶️ 執行
-```bash
-python ai_sdk_demo/run_inference.py   --model ai_sdk_demo/model/model.tflite   --image ai_sdk_demo/images/test.jpg   --labels ai_sdk_demo/model/labels.txt
-```
-
----
-## 2️⃣ Wi-Fi Sensing Demo
-### ✨ 功能
-- 使用 **WiAR dataset** (Wi-Fi CSI Data)  
-- 訓練 CNN/LSTM 模型，分類人體活動 (走路 / 坐下 / 揮手...)  
-- Demo：輸入 CSI → 輸出動作分類  
-
-### 🔧 環境安裝
-```bash
-pip install -r requirements.txt
-```
-
-### ▶️ 訓練 & 測試
-```bash
-# 使用合成資料（快速測試流程）
-python wifi_sensing_demo/train_eval.py --use_synthetic 1
-
-# 使用實際 WiAR dataset (processed.npz)
-python wifi_sensing_demo/train_eval.py
+pip install --upgrade pip
+pip install tensorflow numpy matplotlib scikit-learn pillow
 ```
 ---
-## 📊 成果展示
 
-### AI SDK 部署 Demo
-- 測試圖片：
-  ![AI SDK Inference Demo](ai_sdk_demo/ai_sdk_demo/images/test.png)
-- Top-5 分類結果：
-  ```
-  Inference time: 91.51 ms
-  Top 1: Egyptian_cat (0.7276)
-  Top 2: tabby (0.1734)
-  Top 3: tiger_cat (0.0555)
-  Top 4: tiger (0.0063)
-  Top 5: conch (0.0037)
-  ```
+## Wi-Fi AI Demo
 
-- Demo 圖：  
-  ![AI SDK Inference Demo](ai_sdk_demo/demo-output/ai-sdk-result.png)
+端到端範例：**Wi-Fi Sensing / HAR 訓練與部署** + **AI SDK 影像推論 Demo**。  
+重點包含：資料轉檔 → 1D-CNN 訓練（EarlyStopping）→ 匯出 Keras/TFLite → Demo 推論。
 
 ---
 
-### Wi-Fi Sensing Demo
-- 測試準確率：`Test accuracy: 1.00`
-- 輸出模型：
+### 訓練資料來源
+
+#### UCI HAR Dataset
+- 官方頁：<https://archive.ics.uci.edu/ml/datasets/human+activity+recognition+using+smartphones>  
+- 下載 ZIP：<https://archive.ics.uci.edu/ml/machine-learning-databases/00240/UCI%20HAR%20Dataset.zip>  
+- 內容：561 維特徵、6 類活動；官方已切 train/test。
+
+- 下載與解壓：
+```powershell
+mkdir data_uci_har
+Invoke-WebRequest -Uri "https://archive.ics.uci.edu/ml/machine-learning-databases/00240/UCI%20HAR%20Dataset.zip" -OutFile data_uci_har\UCI_HAR_Dataset.zip
+Expand-Archive -Path data_uci_har\UCI_HAR_Dataset.zip -DestinationPath data_uci_har -Force
+```
+
+- 轉成 processed.npz：
+```bash
+python tools/uci_har_to_processed.py
+```
+
+#### 分類類別對應表（UCI HAR 六類活動）
+
+| Label ID | Activity             | 說明       |
+|----------|----------------------|-----------|
+| 0        | WALKING              | 走路       |
+| 1        | WALKING_UPSTAIRS     | 上樓梯     |
+| 2        | WALKING_DOWNSTAIRS   | 下樓梯     |
+| 3        | SITTING              | 坐著       |
+| 4        | STANDING             | 站立       |
+| 5        | LAYING               | 躺下       |
+
+---
+
+### Wi-Fi Sensing 訓練與匯出
+- 訓練
+```bash
+python wifi_sensing_demo/train_eval.py --epochs 100
+```
+- 輸出：
+`csi_cnn.h5`, `csi_cnn.tflite`, `training_curve.png`, `confusion_matrix.png`
+
+- 快速測試（合成資料）：
+```bash
+python wifi_sensing_demo/train_eval.py --use_synthetic 1 --epochs 50
+```
+
+---
+
+### Wi-Fi Sensing 實驗成果
+- **Test Accuracy**：92.94%（UCI HAR，1D-CNN）
+
+#### 輸出模型
   - `wifi_sensing_demo/model/csi_cnn.h5`
   - `wifi_sensing_demo/model/csi_cnn.tflite`
-- 訓練曲線圖：  
-  ![Wi-Fi Sensing Demo](wifi_sensing_demo/model/training_curve.png)
+
+#### 學習曲線
+![Training Curve Accuracy](wifi_sensing_demo/model/training_curve.png)
+![Training Curve Loss](wifi_sensing_demo/model/training_curve_loss.png)
+
+
+#### 混淆矩陣
+![Confusion Matrix](wifi_sensing_demo/model/confusion_matrix.png)
+> 解讀：**走路(0)/上下樓梯(1,2)** 之間最易混淆；**坐著(3)/站立(4)** 有少量互判；**躺下(5)** 幾乎完全正確。
+> 動態動作（走路、上下樓梯）因加速度特徵相近，最容易互相混淆。
 
 ---
 
-## 💡 專案價值
-- **AI SDK 部署** → 展示如何將 AI 模型壓縮、最佳化並部署到邊緣裝置。  
-- **Wi-Fi Sensing** → 展示 AI 在無線應用（活動偵測、智慧家居、健康監測）的潛力。  
-- **延伸應用**  
-  - 智慧頻道選擇 / 干擾預測  
-  - Wi-Fi 6/7 QoS 優化  
-  - Router / IoT 設備中的 AI 助理  
+## AI SDK 部署 Demo（影像分類）
+> 此 Demo 使用 MobileNetV2 (ImageNet Pretrained, TFLite) 作為展示，主要目的在於驗證 AI SDK 推論流程。
+
+
+### 功能
+- 載入 TFLite 模型（`.tflite`）與標籤（`labels.txt`）
+- 對單張影像分類，輸出 **Top-K 類別與機率**
+- 支援 CPU (XNNPACK)；可延伸到 NPU delegate
+
+### 取得模型與標籤
+```bash
+# 匯出/下載 TFLite 模型
+python tools/export_mobilenet.py --output ai_sdk_demo/model/model.tflite
+
+# 下載 ImageNet 類別標籤
+python tools/get_imagenet_labels.py --out ai_sdk_demo/model/labels.txt
+```
+
+### 執行
+```bash
+python ai_sdk_demo/run_inference.py   --model ai_sdk_demo/model/model.tflite   --image ai_sdk_demo/images/test.jpg   --labels ai_sdk_demo/model/labels.txt   --top_k 5
+```
 
 ---
 
-## 📝 未來工作
-- 模型壓縮（量化 / 剪枝 / 知識蒸餾）  
-- 部署到其他邊緣裝置
-- 探索更多 Wi-Fi sensing 應用場景  
+### AI SDK 部署 Demo 實驗成果
+#### Top-5 分類結果：
+```
+INFO: Loaded TFLite model (XNNPACK)
+Inference time: 91.51 ms
+Top 1: Egyptian_cat (0.7276)
+Top 2: tabby (0.1734)
+Top 3: tiger_cat (0.0555)
+Top 4: tiger (0.0063)
+Top 5: conch (0.0037)
+```
 
+#### Demo 圖：
+![AI SDK Inference Demo](demo_output/ai-sdk-result.png)
 ---
 
 ## 👤 作者
