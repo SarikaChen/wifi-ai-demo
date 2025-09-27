@@ -161,6 +161,9 @@ Top 5: conch (0.0037)
 ```
 
 #### Demo 圖：
+- 測試圖片：
+![AI SDK Inference Demo](ai_sdk_demo/images/test.png)
+- 分類結果：
 ![AI SDK Inference Demo](demo_output/ai-sdk-result.png)
 ---
 
