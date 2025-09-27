@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# 系統 / Editor
+.DS_Store
+Thumbs.db
+.ipynb_checkpoints/
+
+# 資料與模型（保留小檔，不要上傳大檔）
+wifi_sensing_demo/data/
+!wifi_sensing_demo/data/.keep
+
+wifi_sensing_demo/model/*.h5
+wifi_sensing_demo/model/*.tflite
+wifi_sensing_demo/model/best.h5
+
+# 如果要上傳成果圖就不要忽略
+# wifi_sensing_demo/model/*.png
+
+# 下載的原始資料集
+data_uci_har/
