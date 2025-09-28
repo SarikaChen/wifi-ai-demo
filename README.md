@@ -76,6 +76,11 @@ Expand-Archive -Path data_uci_har\UCI_HAR_Dataset.zip -DestinationPath data_uci_
 python tools/uci_har_to_processed.py
 ```
 
+- 切分訓練 / 驗證 / 測試集
+![Dataset](demo_output/wifi-sensing-data-struc.png)
+
+---
+
 #### 分類類別對應表（UCI HAR 六類活動）
 
 | Label ID | Activity             | 說明       |
@@ -89,11 +94,24 @@ python tools/uci_har_to_processed.py
 
 ---
 
+### 模型設計
+- 輸入：時序特徵向量
+- 卷積層 + 池化層 → 抽取時間序列特徵
+- 全連接層 → softmax 輸出 6 類
+![Model Structure](demo_output/wifi-sensing-model-struc.png)
+
+---
+
 ### Wi-Fi Sensing 訓練與匯出
 - 訓練
 ```bash
 python wifi_sensing_demo/train_eval.py --epochs 100
 ```
+    - EarlyStopping (避免 overfitting)
+    - Optimizer: Adam
+    - Loss: categorical crossentropy
+    - Epochs: 100
+
 - 輸出：
 `csi_cnn.h5`, `csi_cnn.tflite`, `training_curve.png`, `confusion_matrix.png`
 
@@ -118,8 +136,10 @@ python wifi_sensing_demo/train_eval.py --use_synthetic 1 --epochs 50
 
 #### 混淆矩陣
 ![Confusion Matrix](wifi_sensing_demo/model/confusion_matrix.png)
-> 解讀：**走路(0)/上下樓梯(1,2)** 之間最易混淆；**坐著(3)/站立(4)** 有少量互判；**躺下(5)** 幾乎完全正確。
-> 動態動作（走路、上下樓梯）因加速度特徵相近，最容易互相混淆。
+> 解讀：
+-走路 / 上下樓梯 容易混淆
+-坐著 / 站立 有部分互判
+-躺下 幾乎完全正確
 
 ---
 
